@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 3
   tags:
   - Food
+  - SpeedItem
   layers:
   - Default
   - TransparentFX

@@ -1,17 +1,49 @@
 using UnityEngine;
-using UnityEngine.SceneManagement; // 這是切換場景必備的
+using UnityEngine.SceneManagement;
+using UnityEngine.UI; // 記得要有這行才能控制 Image
 
 public class MenuManager : MonoBehaviour
 {
-    [Header("UI 物件")]
-    public GameObject settingsPanel; // 這是那個黑色的設定視窗
+    [Header("UI 面板")]
+    public GameObject settingsPanel;
+
+    [Header("按鈕外觀 (請把按鈕拖進來)")]
+    public Image btnSkinDefault; // 預設食物按鈕的圖
+    public Image btnSkinHate;    // 討厭鬼按鈕的圖
+
+    [Header("顏色設定")]
+    public Color selectedColor = Color.green; // 選中時變綠色
+    public Color normalColor = Color.white;   // 沒選中時白色
 
     void Start()
     {
-        // 遊戲一開始，先確保設定視窗是關閉的
-        if (settingsPanel != null)
+        // 1. 初始化面板
+        if (settingsPanel != null) settingsPanel.SetActive(false);
+
+        // 2. 讀取目前的選擇，並更新按鈕顏色
+        UpdateButtonVisuals();
+    }
+
+    // --- 內部功能：更新按鈕顏色 ---
+    void UpdateButtonVisuals()
+    {
+        // 讀取存檔 (0=預設, 1=討厭鬼)
+        int currentSkin = PlayerPrefs.GetInt("FoodSkin", 0);
+
+        if (btnSkinDefault != null && btnSkinHate != null)
         {
-            settingsPanel.SetActive(false);
+            if (currentSkin == 0)
+            {
+                // 選的是預設：預設亮綠燈，討厭鬼變白
+                btnSkinDefault.color = selectedColor;
+                btnSkinHate.color = normalColor;
+            }
+            else
+            {
+                // 選的是討厭鬼：討厭鬼亮綠燈，預設變白
+                btnSkinDefault.color = normalColor;
+                btnSkinHate.color = selectedColor;
+            }
         }
     }
 
@@ -19,38 +51,33 @@ public class MenuManager : MonoBehaviour
 
     public void OnClickPlay()
     {
-        // 載入下一個場景 (請確認您的遊戲場景名字是 GameScene)
-        // 如果您的場景叫別的名字，請在這裡修改字串
         SceneManager.LoadScene("GameScene");
     }
 
     public void OnClickSetting()
     {
-        settingsPanel.SetActive(true); // 打開設定
+        settingsPanel.SetActive(true);
+        UpdateButtonVisuals(); // 打開設定時，也要更新一下顏色
     }
 
     public void OnClickClose()
     {
-        settingsPanel.SetActive(false); // 關閉設定
+        settingsPanel.SetActive(false);
     }
 
-    // --- 換膚功能區 ---
-    // 我們用 PlayerPrefs (手機的記事本) 來記錄玩家的選擇
-    // 0 = 星星 (預設), 1 = 討厭鬼
-
-    public void OnSelectSkin_Star()
+    public void OnSelectSkin_Default() // 改個名字比較清楚
     {
         PlayerPrefs.SetInt("FoodSkin", 0);
-        PlayerPrefs.Save(); // 存檔
-        Debug.Log("已選擇：星星");
-        // 這裡可以加一點視覺回饋，例如按鈕變色，但我們先求有功能
+        PlayerPrefs.Save();
+        UpdateButtonVisuals(); // 按下後立刻變色
+        Debug.Log("已選擇：預設食物");
     }
 
     public void OnSelectSkin_Hate()
     {
         PlayerPrefs.SetInt("FoodSkin", 1);
-        PlayerPrefs.Save(); // 存檔
+        PlayerPrefs.Save();
+        UpdateButtonVisuals(); // 按下後立刻變色
         Debug.Log("已選擇：討厭鬼");
     }
 }
-

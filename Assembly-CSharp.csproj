@@ -49,7 +49,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets/FoodSkinLoader.cs" />
+    <Compile Include="Assets/BossController.cs" />
     <Compile Include="Assets/MenuManager.cs" />
+    <Compile Include="Assets/FoodSpawner.cs" />
     <Compile Include="Assets/PlayerController.cs" />
     <Compile Include="Assets/CameraFollow.cs" />
   </ItemGroup>

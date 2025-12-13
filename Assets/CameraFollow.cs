@@ -3,48 +3,40 @@ using UnityEngine;
 public class CameraFollow : MonoBehaviour
 {
     [Header("跟隨目標")]
-    public Transform target;        // 您的黑洞
-    public float smoothSpeed = 0.125f;
-    public Vector3 offset;          // 保持的距離 (Z應該是 -10)
+    public Transform target;        // 主角 (黑洞)
+    public float smoothSpeed = 5f;  // 跟隨的平滑度
 
-    [Header("動態變焦 (Dynamic Zoom)")]
-    public float zoomFactor = 1.5f; // 縮放係數 (數字越大，鏡頭拉越遠)
-    public float zoomSpeed = 2f;    // 鏡頭變焦的反應速度
-    
-    private Camera cam;             // 攝影機組件
-    private float initialSize;      // 攝影機一開始的大小
+    [Header("變焦設定 (Zoom)")]
+    public float baseSize = 5f;     // 初始鏡頭大小 (預設是 5)
+    public float zoomFactor = 0.8f; // 變焦倍率 (數字越小，鏡頭拉遠越慢；數字越大，拉遠越快)
+
+    private Vector3 offset;         // 保持 Z 軸距離用
+    private Camera cam;
 
     void Start()
     {
-        cam = GetComponent<Camera>(); // 抓取攝影機組件
-        initialSize = cam.orthographicSize; // 記住一開始的大小 (通常是 5)
-    }
-
-    void LateUpdate()
-    {
+        cam = GetComponent<Camera>();
         if (target != null)
         {
-            // --- 1. 位置跟隨 (原本的功能) ---
-            Vector3 desiredPosition = target.position + offset;
-            transform.position = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed);
-
-            // --- 2. 自動變焦 (新功能！) ---
-            // 數學公式：目標視野 = 原本視野 + (黑洞現在的大小 - 黑洞原本的大小) * 係數
-            // 這樣黑洞變大時，視野就會跟著等比例變大
-            float currentScale = target.localScale.x; // 假設黑洞是圓的，取 X 軸大小即可
-            
-            // 這裡減 1 是假設黑洞初始大小是 1 (如果您初始設為 3，這裡可以改成 3)
-            // 但為了通用，我們用動態計算增量的方式比較簡單：
-            float sizeIncrease = (currentScale - 1f) * zoomFactor; 
-            float targetSize = initialSize + sizeIncrease;
-
-            // 確保視野不會小於原本的大小
-            if (targetSize < initialSize) targetSize = initialSize;
-
-            // 使用 Lerp 讓縮放變得很滑順，不會頭暈
-            cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, targetSize, Time.deltaTime * zoomSpeed);
+            // 記住一開始的相對距離 (主要是 Z 軸 -10)
+            offset = transform.position - target.position;
         }
     }
+
+   void LateUpdate()
+    {
+        if (target == null) return;
+
+        // 只跟隨目標的 X 和 Y，但是 Z 軸永遠固定在 -10
+        Vector3 targetPos = new Vector3(target.position.x, target.position.y, -10f);
+
+        // 使用 Lerp 讓移動滑順
+        transform.position = Vector3.Lerp(transform.position, targetPos, smoothSpeed * Time.deltaTime);
+
+
+        // --- 2. 動態變焦 (這部分維持不變) ---
+        float targetSize = baseSize * target.localScale.x * zoomFactor;
+        if (targetSize < baseSize) targetSize = baseSize;
+        cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, targetSize, smoothSpeed * Time.deltaTime);
+    }
 }
-
-
